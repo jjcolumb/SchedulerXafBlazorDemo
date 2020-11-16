@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Application>
+	<NavigationItems>
+		<Items Index="3">
+			<Item Id="@fc7c3f13-7db5-4805-83cd-e044613b0ccd" ViewId="DashboardTest" Index="3" IsNewNode="True" />
+		</Items>
+	</NavigationItems>
+	<SchemaModules>
+		<SchemaModule Name="SystemModule" Version="20.2.2.0" IsNewNode="True" />
+	</SchemaModules>
+	<Views>
+		<DashboardView Id="DashboardTest" Caption="Dashboard Test" IsNewNode="True">
+			<Items IsNewNode="True">
+				<ComponentViewItem Id="TestComponent" Caption="Test" IsNewNode="True" />
+			</Items>
+		</DashboardView>
+	</Views>
+</Application>

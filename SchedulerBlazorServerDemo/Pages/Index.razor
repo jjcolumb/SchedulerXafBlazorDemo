@@ -1,0 +1,30 @@
+﻿@page "/"
+@using SchedulerBlazorServerDemo.Data
+
+        <DxScheduler StartDate="@DateTime.Today"
+                     DataStorage="@DataStorage">
+            <DxSchedulerWeekView ShowWorkTimeOnly="false"></DxSchedulerWeekView>
+        </DxScheduler>
+
+
+@code {
+    DxSchedulerDataStorage DataStorage = new DxSchedulerDataStorage()
+    {
+        AppointmentsSource = AppointmentCollection.GetAppointments(),
+        AppointmentMappings = new DxSchedulerAppointmentMappings()
+        {
+            Type = "AppointmentType",
+            Start = "StartDate",
+            End = "EndDate",
+            Subject = "Caption",
+            AllDay = "AllDay",
+            Location = "Location",
+            Description = "Description",
+            LabelId = "Label",
+            StatusId = "Status",
+            RecurrenceInfo = "Recurrence"
+        }
+    };
+
+    
+}

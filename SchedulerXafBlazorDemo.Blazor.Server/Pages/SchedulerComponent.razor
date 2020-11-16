@@ -1,0 +1,135 @@
+﻿@using DevExpress.Blazor
+@using SchedulerXafBlazorDemo.Module.BusinessObjects 
+@inject DevExpress.ExpressApp.Blazor.Services.IXafApplicationProvider ApplicationProvider
+
+@page "/scheduler"
+
+
+        <DxScheduler StartDate="@DateTime.Today"
+                     DataStorage="@DataStorage"
+                     CssClass="mw-1100"
+                     AppointmentInserted="(e) => AppointmentInserted(e)"
+                     AppointmentUpdated="(e) => AppointmentUpdated(e)"
+                     AppointmentInserting="(e) => AppointmentInserting(e)"
+                     AppointmentRemoved="(e) => AppointmentRemoved(e)">
+            <DxSchedulerWeekView ShowWorkTimeOnly="false"></DxSchedulerWeekView>
+        </DxScheduler>
+
+@code {
+
+    private static DevExpress.ExpressApp.IObjectSpace objectSpace;
+    private static DevExpress.ExpressApp.Blazor.BlazorApplication blazorApplication;
+    private DxSchedulerDataStorage DataStorage;
+
+    void AppointmentInserted(DxSchedulerAppointmentItem e)
+    {
+        Appointment appointmentNew = objectSpace.CreateObject<Appointment>();
+        appointmentNew.AllDay = e.AllDay;
+        appointmentNew.Caption = e.Subject;
+        appointmentNew.Description = e.Description;
+        appointmentNew.EndDate = e.End;
+        if(e.LabelId!= null)
+            appointmentNew.Label = int.Parse(e.LabelId.ToString());
+        appointmentNew.Location = e.Location;
+        appointmentNew.StartDate = e.Start;
+        appointmentNew.Status = int.Parse(e.StatusId.ToString());
+        appointmentNew.Id = (System.Guid)e.Id;
+        objectSpace.CommitChanges();
+    }
+    void AppointmentInserting(SchedulerAppointmentOperationEventArgs e)
+    {
+        e.Appointment.Id = Guid.NewGuid();
+    }
+
+    void AppointmentUpdated(DxSchedulerAppointmentItem e)
+    {
+        ConvertToAppointment(e);
+    }
+
+    void AppointmentRemoved(DxSchedulerAppointmentItem e)
+    {
+        Appointment appointment = objectSpace.FindObject<Appointment>(new DevExpress.Data.Filtering.BinaryOperator("Id", e.Id));
+        appointment.Delete();
+        objectSpace.CommitChanges();
+    }
+
+    private static IEnumerable<SchedulerXafBlazorDemo.Module.BusinessObjects.AppointmentPOCO> GetData()
+    {
+        DateTime date = DateTimeUtils.CreateWeekStart();       
+     
+        var dataSource = new List<AppointmentPOCO>();
+    
+        if(objectSpace.GetObjects<SchedulerXafBlazorDemo.Module.BusinessObjects.Appointment>().ToList().Count > 0)
+        {
+            foreach (Appointment item in objectSpace.GetObjects<SchedulerXafBlazorDemo.Module.BusinessObjects.Appointment>().ToList())
+            {
+                dataSource.Add(ConvertToAppointmentPOCO(item));
+            }
+        }
+        return dataSource;
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        blazorApplication = ApplicationProvider.GetApplication();
+        objectSpace = blazorApplication.CreateObjectSpace(typeof(SchedulerXafBlazorDemo.Module.BusinessObjects.Appointment));
+        DataStorage = new DxSchedulerDataStorage()
+        {
+            AppointmentsSource = GetData(),
+            AppointmentMappings = new DxSchedulerAppointmentMappings()
+            {
+                Type = "AppointmentType",
+                Start = "StartDate",
+                End = "EndDate",
+                Subject = "Caption",
+                AllDay = "AllDay",
+                Location = "Location",
+                Description = "Description",
+                LabelId = "Label",
+                StatusId = "Status",
+                RecurrenceInfo = "Recurrence",
+                Id = "OidPoco"
+            }
+        };
+    }
+
+    public void ConvertToAppointment(DxSchedulerAppointmentItem e)
+    {
+        Appointment appointment = objectSpace.FindObject<Appointment>(new DevExpress.Data.Filtering.BinaryOperator("Id", e.Id));
+        if (appointment == null)
+        {
+            return;
+        }
+        appointment.AllDay = e.AllDay;
+        appointment.Caption = e.Subject;
+        appointment.Description = e.Description;
+        appointment.EndDate = e.End;
+        appointment.Label = int.Parse(e.LabelId.ToString());
+        appointment.Location = e.Location;
+        appointment.StartDate = e.Start;
+        appointment.Status = int.Parse(e.StatusId.ToString());
+        appointment.Id = (System.Guid)e.Id;
+        objectSpace.CommitChanges();
+    }
+
+    public static AppointmentPOCO ConvertToAppointmentPOCO(Appointment item)
+    {
+        AppointmentPOCO appointmentPOCO = new AppointmentPOCO
+        {
+            AllDay = item.AllDay,
+            AppointmentType = item.AppointmentType,
+            Caption = item.Caption,
+            Description = item.Description,
+            EndDate = item.EndDate,
+            Label = item.Label,
+            Location = item.Location,
+            Recurrence = item.Recurrence,
+            StartDate = item.StartDate,
+            Status = item.Status,
+            OidPoco = item.Id
+        };
+
+        return appointmentPOCO;
+    }
+}
